@@ -1,11 +1,9 @@
 <#
 Version: 1.0
 Author: 
-- Joey Verlinden (https://www.joeyverlinden.com/)
-- Andrew Taylor (https://andrewstaylor.com/)
-- Jannik Reinhard (jannikreinhard.com)
-Script: detect-fastboot.ps1
-Description: Detects if Fastboot is enabled
+- Jordi Koenderink
+Script: Detect-TaskbarEndTask.ps1
+Description: Detects if TaskbarEndTask is enabled (value = 1)
 Release notes:
 Version 1.0: Init
 Run as: Admin/User
@@ -13,13 +11,13 @@ Context: 64 Bit
 #> 
 
 ##Enter the path to the registry key for example HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
-$regpath = ""
+$regpath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings"
 
 ##Enter the name of the registry key for example EnableLUA
-$regname = ""
+$regname = "TaskbarEndTask"
 
 ##Enter the value of the registry key we are checking for, for example 0
-$regvalue = ""
+$regvalue = "1"
 
 
 Try {
