@@ -1,86 +1,40 @@
 <#
 Version: 1.0
 Author: 
-- Joey Verlinden (joeyverlinden.com)
-- Andrew Taylor (andrewstaylor.com)
-- Florian Slazmann (scloud.work)
-- Jannik Reinhard (jannikreinhard.com)
-- Marius Wyss (marius.wyss@microsoft.com)
-Script: Change-MultipleRegistryKeysRemediaton.ps1
-Description:
-Hint: This is a community script. There is no guarantee for this. Please check thoroughly before running.
+- Jordi Koenderink
+Script: Remediate-WindowsAppStartMenu.ps1
+Description: Enables Windows App Start menu integration by setting two registry values
+             under HKLM:\SOFTWARE\Microsoft\WindowsApp:
+             - SyncToStartMenuUnavailable set to 0 (feature available, toggle can appear)
+             - SyncToStartMenuConfig set to 17 (toggle locked and on, sync active)
+             If the registry path does not exist, it will be created automatically.
+Release notes:
 Version 1.0: Init
-Run as: User/Admin
+Run as: Admin
 Context: 64 Bit
-#> 
+#>
 
-# Description: This script creates the registry keys defined below.
-# Output: (single line)
-#  If ok, a prefix string (33) + each the key name
-#   e.g: All OK | Registry values created: YourFirstKeyName, YourSecondKeyName
-#  If not ok, a prefix string (52) + each created key (without the not created keys)
-#   e.g: Something went wrong :-( | Registry values created: YourFirstKeyName, YourSecondKeyName
+$regpath = "HKLM:\SOFTWARE\Microsoft\WindowsApp"
 
-#region Define registry keys to create here
-$RegistrySettingsToValidate = @(
+$RegistrySettingsToApply = @(
     [pscustomobject]@{
-        Hive  = 'HKLM:\'
-        Key   = 'SOFTWARE\Contoso\Product'
-        Name  = 'ImportantKey'
-        Type  = 'REG_DWORD'
-        Value = 1
+        Name  = 'SyncToStartMenuUnavailable'
+        Value = 0
+        Type  = 'DWord'
     },
     [pscustomobject]@{
-        Hive  = 'HKLM:\'
-        Key   = 'SOFTWARE\Contoso\Product'
-        Name  = 'AnotherKey'
-        Type  = 'REG_SZ'
-        Value = "SomeValue"
+        Name  = 'SyncToStartMenuConfig'
+        Value = 17
+        Type  = 'DWord'
     }
 )
-#endregion
 
-#region helper functions, enums and maps
-$RegTypeMap = @{
-    REG_DWORD = [Microsoft.Win32.RegistryValueKind]::DWord
-    REG_SZ = [Microsoft.Win32.RegistryValueKind]::String
-    REG_QWORD = [Microsoft.Win32.RegistryValueKind]::QWord
-    REG_BINARY = [Microsoft.Win32.RegistryValueKind]::Binary
-    REG_MULTI_SZ = [Microsoft.Win32.RegistryValueKind]::MultiString
-    REG_EXPAND_SZ = [Microsoft.Win32.RegistryValueKind]::ExpandString
+# Create the registry path if it doesn't exist
+if (-not (Test-Path $regpath)) {
+    New-Item -Path $regpath -Force | Out-Null
 }
-#endregion
 
-#region Create registry keys
-$Output = "Something went wrong :-("
-$Names = @()
-$ExitCode = 1
-Foreach ($reg in $RegistrySettingsToValidate) {
-
-    $DesiredPath          = "$($reg.Hive)$($reg.Key)"
-    $DesiredName          = $reg.Name
-    $DesiredType          = $RegTypeMap[$reg.Type]
-    $DesiredValue         = $reg.Value
-
-    #Write-Host "Creating registry value: $DesiredPath | $DesiredName | $($reg.Type) | $DesiredValue" 
-    
-    If (-not (Test-Path -Path $DesiredPath)) {
-        New-Item -Path $DesiredPath -Force | Out-Null
-    }
-    New-ItemProperty -Path $DesiredPath -Name $DesiredName -PropertyType $DesiredType -Value $DesiredValue -Force -ErrorAction SilentlyContinue | Out-Null
-    $Names += $DesiredName
+# Create or update each registry property
+foreach ($reg in $RegistrySettingsToApply) {
+    New-ItemProperty -LiteralPath $regpath -Name $reg.Name -Value $reg.Value -PropertyType $reg.Type -Force -ea SilentlyContinue
 }
-#endregion
-
-#region Check if registry keys are set correctly
-If ($Names.count -eq $RegistrySettingsToValidate.count) {
-    $Output = "All OK | Registry values created: $($Names -join ', ')"
-    $ExitCode = 0
-} else {
-    $Output = "Something went wrong :-( | Registry values created: $($Names -join ', ')"
-    $ExitCode = 1
-}
-#endregion
-
-Write-Output $Output
-Exit $ExitCode

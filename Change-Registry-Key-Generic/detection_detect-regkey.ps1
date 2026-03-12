@@ -2,8 +2,12 @@
 Version: 1.0
 Author: 
 - Jordi Koenderink
-Script: Detect-TaskbarEndTask.ps1
-Description: Detects if TaskbarEndTask is enabled (value = 1)
+Script: Detect-FileExplorerLaunchTo.ps1
+Description: Detects whether the default File Explorer launch location is correctly configured
+             by checking if the LaunchTo registry value is set to 4 under 
+             HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced.
+             A value of 4 sets File Explorer to open to a specific location (e.g. OneDrive).
+             Returns 'Compliant' with exit code 0 if correctly set, otherwise 'Not Compliant' with exit code 1.
 Release notes:
 Version 1.0: Init
 Run as: Admin/User
@@ -11,13 +15,13 @@ Context: 64 Bit
 #> 
 
 ##Enter the path to the registry key for example HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
-$regpath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings"
+$regpath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 
 ##Enter the name of the registry key for example EnableLUA
-$regname = "TaskbarEndTask"
+$regname = "LaunchTo"
 
 ##Enter the value of the registry key we are checking for, for example 0
-$regvalue = "1"
+$regvalue = "4"
 
 
 Try {
